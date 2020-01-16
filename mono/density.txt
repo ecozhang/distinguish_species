@@ -1,0 +1,23 @@
+File	Objects/mL, All	
+76_new_17d_dilu2_2.daf	10715735,8100	
+76_new_17d_undilu_3.daf	20984982,6200	
+c13_mix_1_9_1.daf	2342509,6900	
+c13_mix_1_99_1.daf	1879252,1800	
+c13_mix_9_1_1.daf	922416,8200	
+c13_mix_99_1_1.daf	899356,4000	
+c65_mix_1_9_1.daf	6295494,7900	
+c65_mix_1_99_1.daf	5595995,3700	
+c65_mix_9_1_1.daf	2375658,4100	
+c65_mix_99_1_1.daf	689917,2400	
+C76_9_1_1.daf	2501521,1100	
+chlamy_old_dilu2_1.daf	410129,9500	
+chlamy_old_dilu2_2.daf	680594,0300	
+chlamy_old_dilu2_3.daf	206409,6700	
+chlamy_old_undilu_1.daf	2767250,4600	
+chlamy_old_undilu_2.daf	868344,1100	
+chlorella_old_dilu2_1.daf	1998569,7700	
+chlorella_old_undi_1.daf	6456917,7300	
+chlorella_old_undi_1_2.daf	5723177,0800	
+test_c_dilu2.daf	2208945,5400	
+13_new_undilu_1.daf	2116132,7000	
+13_new_undilu_2.daf	2030804,7700	

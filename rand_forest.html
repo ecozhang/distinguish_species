@@ -1588,7 +1588,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">rand_forest</h1>
 <h4 class="author">ZZ</h4>
-<h4 class="date">08 January, 2020</h4>
+<h4 class="date">16 January, 2020</h4>
 
 </div>
 
@@ -1604,29 +1604,49 @@ library(knitr)</code></pre>
 #d_c &lt;- read.delim(&#39;./mono/20191223/chlamy.txt&#39;,header = T, skip = 1, dec = &#39;,&#39;)
 d_c2 &lt;- read.delim(&#39;./mono/20191228/chlamy_undilu.txt&#39;,header = T, skip = 1, dec = &#39;,&#39;)
 d_c &lt;- d_c %&gt;% bind_rows(d_c2)
+samples &lt;- sample(1:nrow(d_c), nrow(d_c)*0.05)
+d_c_test &lt;- d_c %&gt;% 
+  slice(samples)
+d_c_train &lt;- d_c %&gt;% 
+  slice(-samples)
+
 
 d_chlo &lt;- read.delim(&#39;./mono/20191228/chlorella_dilu2.txt&#39;,header = T, skip = 1, dec = &#39;,&#39;)
 #d_chlo &lt;- read.delim(&#39;./mono/20191223/chlorella.txt&#39;,header = T, skip = 1, dec = &#39;,&#39;)
 d_chlo2 &lt;- read.delim(&#39;./mono/20191228/chlorella_undilu.txt&#39;,header = T, skip = 1, dec = &#39;,&#39;)
 d_chlo &lt;- d_chlo %&gt;% bind_rows(d_chlo2)
-
+samples &lt;- sample(1:nrow(d_chlo), nrow(d_chlo)*0.5)
+d_chlo_test &lt;- d_chlo %&gt;% 
+  slice(samples)
+d_chlo_train &lt;- d_chlo %&gt;% 
+  slice(-samples)
 
 d_13 &lt;- read.delim(&#39;./mono/20191228/13_undilu.txt&#39;,header = T, skip = 1, dec = &#39;,&#39;)
+samples &lt;- sample(1:nrow(d_13), nrow(d_13)*0.25)
+d_13_test &lt;- d_13 %&gt;% 
+  slice(samples)
+d_13_train &lt;- d_13 %&gt;% 
+  slice(-samples)
 
 d_76 &lt;- read.delim(&#39;./mono/20191228/76_undilu.txt&#39;,header = T, skip = 1, dec = &#39;,&#39;)
 d_762 &lt;- read.delim(&#39;./mono/20191228/76_dilu2.txt&#39;,header = T, skip = 1, dec = &#39;,&#39;)
 d_76 &lt;- d_76 %&gt;% bind_rows(d_762)
 # d_chlo &lt;- rbind(d_76,d_762)%&gt;% 
-#   slice(sample(2000,2000))</code></pre>
-<pre class="r"><code>build_train &lt;- function(data_clamy = d_c, data_comp = d_chlo){
-  d_c &lt;- data_clamy %&gt;% 
-    mutate(sp = &#39;clamy&#39;)
-  d_comp &lt;- data_comp %&gt;% 
+#   slice(sample(2000,2000))
+samples &lt;- sample(1:nrow(d_76), nrow(d_76)*0.25)
+d_76_test &lt;- d_76 %&gt;% 
+  slice(samples)
+d_76_train &lt;- d_76 %&gt;% 
+  slice(-samples)</code></pre>
+<pre class="r"><code>build_train &lt;- function(data_chlamy = d_c_train, data_comp = d_chlo_train){
+  data_chlamy &lt;- data_chlamy %&gt;% 
+    mutate(sp = &#39;chlamy&#39;)
+  data_comp &lt;- data_comp %&gt;% 
     mutate(sp = &#39;sp_comp&#39;)
-  data &lt;- d_c %&gt;% 
-    bind_rows(d_comp) %&gt;% 
-    dplyr::select(colnames(data_clamy)[grep(&#39;[0-9]{2}&#39;,colnames(data_clamy))], sp) %&gt;% # which columns to select
-    dplyr::select(-one_of(colnames(data_clamy)[grep(&#39;Bkgd|Flow|Time&#39;,colnames(data_clamy))])) %&gt;% # which colums to remove
+  data &lt;- data_chlamy %&gt;% 
+    bind_rows(data_comp) %&gt;% 
+    dplyr::select(colnames(data_chlamy)[grep(&#39;[0-9]{2}&#39;,colnames(data_chlamy))], sp) %&gt;% # which columns to select
+    dplyr::select(-one_of(colnames(data_chlamy)[grep(&#39;Bkgd|Flow|Time&#39;,colnames(data_chlamy))])) %&gt;% # which colums to remove
     mutate(sp = as.factor(sp))
   return(data)
 }</code></pre>
@@ -1643,7 +1663,7 @@ c_chlo_1_99 &lt;- read.delim(&#39;./bi/c65_1_99.txt&#39;,header = T, skip = 1, d
   mutate(volum_c = 1, volum_comp = 99)
 c_chlo &lt;- rbind(c_chlo_1_9, c_chlo_9_1, c_chlo_99_1, c_chlo_1_99) %&gt;% 
   mutate(sp = 65)</code></pre>
-<pre class="r"><code>train &lt;- build_train(data_comp = d_chlo)
+<pre class="r"><code>train &lt;- build_train()
 
 rf &lt;- randomForest(
   sp ~ .,
@@ -1658,11 +1678,11 @@ rf</code></pre>
 ##                      Number of trees: 1000
 ## No. of variables tried at each split: 14
 ## 
-##         OOB estimate of  error rate: 0.45%
+##         OOB estimate of  error rate: 0.48%
 ## Confusion matrix:
-##         clamy sp_comp class.error
-## clamy    1992       8       0.004
-## sp_comp    10    1990       0.005</code></pre>
+##         chlamy sp_comp class.error
+## chlamy    1894       6 0.003157895
+## sp_comp      8     992 0.008000000</code></pre>
 <p>top 10 preditors</p>
 <pre class="r"><code>importance(rf) %&gt;%
   as.data.frame() %&gt;%
@@ -1671,29 +1691,42 @@ rf</code></pre>
   arrange(-MeanDecreaseGini) %&gt;% 
   head(10)</code></pre>
 <pre><code>##                                   var MeanDecreaseGini
-## 1                   Intensity_MC_Ch09          149.865
-## 2                   Intensity_MC_Ch01          137.476
-## 3                   Intensity_MC_Ch06          125.328
-## 4                 Mean.Pixel_M06_Ch06          121.054
-## 5               Gradient.RMS_M06_Ch06           90.706
-## 6  Bright.Detail.Intensity.R3_MC_Ch10           84.693
-## 7  Bright.Detail.Intensity.R3_MC_Ch12           80.469
-## 8  Bright.Detail.Intensity.R3_MC_Ch02           79.222
-## 9                            Area_M01           76.069
-## 10              Median.Pixel_M06_Ch06           65.375</code></pre>
-<pre class="r"><code>c_chlo$pre_sp &lt;- predict(rf, newdata=c_chlo) 
-
-t_density &lt;- function(data = c_chlo){
+## 1                   Intensity_MC_Ch01          101.027
+## 2                   Intensity_MC_Ch09          100.771
+## 3                   Intensity_MC_Ch06           94.531
+## 4                 Mean.Pixel_M06_Ch06           66.453
+## 5               Gradient.RMS_M06_Ch06           66.031
+## 6  Bright.Detail.Intensity.R3_MC_Ch10           56.725
+## 7                            Area_M01           53.235
+## 8  Bright.Detail.Intensity.R3_MC_Ch12           53.152
+## 9  Bright.Detail.Intensity.R3_MC_Ch02           48.904
+## 10 Bright.Detail.Intensity.R3_MC_Ch04           37.048</code></pre>
+<pre class="r"><code>c_chlo$pre_sp &lt;- predict(rf, newdata=c_chlo)</code></pre>
+<pre class="r"><code>t_density &lt;- function(data = c_chlo){
   table &lt;-data %&gt;% group_by(volum_c, volum_comp, pre_sp,sp) %&gt;% tally() %&gt;% 
     spread(pre_sp, n) %&gt;% 
-    mutate(density_c = clamy/(clamy +sp_comp)) %&gt;% 
+    mutate(density_c = chlamy/(chlamy +sp_comp)) %&gt;% 
     dplyr::select(volum_c, volum_comp, sp, density_c)
   return(table)
 }</code></pre>
+<div id="use-test-data-from-the-monoculture" class="section level2">
+<h2><span class="header-section-number">2.1</span> use test data from the monoculture</h2>
+<pre class="r"><code>test &lt;- d_c_test %&gt;% 
+  mutate(sp = &#39;chlamy&#39;) %&gt;% 
+  bind_rows(d_chlo_test %&gt;% mutate(sp = &#39;sp_comp&#39;))
+
+test$sp_pred &lt;- predict(rf, newdata=test %&gt;% select(-sp))
+print(&#39;accuracy&#39;)</code></pre>
+<pre><code>## [1] &quot;accuracy&quot;</code></pre>
+<pre class="r"><code>sum(test$sp == as.character(test$sp_pred))/nrow(test)</code></pre>
+<pre><code>## [1] 0.9890909</code></pre>
+<pre class="r"><code>sum(test$sp_pred ==&#39;chlamy&#39;)/nrow(test)</code></pre>
+<pre><code>## [1] 0.1018182</code></pre>
+</div>
 </div>
 <div id="chlamy-synechococcus-mix" class="section level1">
 <h1><span class="header-section-number">3</span> chlamy Synechococcus mix</h1>
-<pre class="r"><code>train &lt;- build_train(data_comp = d_76)
+<pre class="r"><code>train &lt;- build_train(data_comp = d_76_train)
 
 rf &lt;- randomForest(
   sp ~ .,
@@ -1707,11 +1740,11 @@ rf</code></pre>
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 14
 ## 
-##         OOB estimate of  error rate: 0.08%
+##         OOB estimate of  error rate: 0.1%
 ## Confusion matrix:
-##         clamy sp_comp  class.error
-## clamy    1996       4 0.0020000000
-## sp_comp     3    6997 0.0004285714</code></pre>
+##         chlamy sp_comp  class.error
+## chlamy    1896       4 0.0021052632
+## sp_comp      3    5247 0.0005714286</code></pre>
 <p>top 10 preditors</p>
 <pre class="r"><code>importance(rf) %&gt;%
   as.data.frame() %&gt;%
@@ -1720,19 +1753,32 @@ rf</code></pre>
   arrange(-MeanDecreaseGini) %&gt;% 
   head(10)</code></pre>
 <pre><code>##                                   var MeanDecreaseGini
-## 1  Bright.Detail.Intensity.R3_MC_Ch07          172.351
-## 2  Bright.Detail.Intensity.R3_MC_Ch09          168.647
-## 3                 Mean.Pixel_M12_Ch12          168.557
-## 4                   Intensity_MC_Ch01          160.458
-## 5  Bright.Detail.Intensity.R3_MC_Ch12          155.444
-## 6                   Intensity_MC_Ch12          144.878
-## 7                   Intensity_MC_Ch11          124.035
-## 8                   Max.Pixel_MC_Ch12          123.729
-## 9  Bright.Detail.Intensity.R3_MC_Ch10          117.428
-## 10              Median.Pixel_M06_Ch06          117.199</code></pre>
+## 1  Bright.Detail.Intensity.R3_MC_Ch09          167.328
+## 2  Bright.Detail.Intensity.R3_MC_Ch12          162.100
+## 3  Bright.Detail.Intensity.R3_MC_Ch01          161.673
+## 4  Bright.Detail.Intensity.R3_MC_Ch07          138.706
+## 5                   Intensity_MC_Ch12          129.616
+## 6                   Intensity_MC_Ch01          122.595
+## 7               Raw.Max.Pixel_MC_Ch12          118.155
+## 8                 Mean.Pixel_M12_Ch12          117.024
+## 9               Median.Pixel_M06_Ch06          112.293
+## 10                  Max.Pixel_MC_Ch12          100.038</code></pre>
 <pre class="r"><code>c_76_9_1 &lt;- read.delim(&#39;./bi/c76_9_1.txt&#39;,header = T, skip = 1, dec = &#39;,&#39;) %&gt;% 
   mutate(volum_c = 9, volum_comp = 1, sp = 76)
 c_76_9_1$pre_sp &lt;- predict(rf, newdata=c_76_9_1)</code></pre>
+<div id="use-test-data-from-the-monoculture-1" class="section level2">
+<h2><span class="header-section-number">3.1</span> use test data from the monoculture</h2>
+<pre class="r"><code>test &lt;- d_c_test %&gt;% 
+  mutate(sp = &#39;chlamy&#39;) %&gt;% 
+  bind_rows(d_76_test %&gt;% mutate(sp = &#39;sp_comp&#39;))
+test$sp_pred &lt;- predict(rf, newdata=test %&gt;% select(-sp))
+print(&#39;accuracy&#39;)</code></pre>
+<pre><code>## [1] &quot;accuracy&quot;</code></pre>
+<pre class="r"><code>sum(test$sp == as.character(test$sp_pred))/nrow(test)</code></pre>
+<pre><code>## [1] 0.9994595</code></pre>
+<pre class="r"><code>sum(as.character(test$sp_pred)==&#39;sp_comp&#39;)/nrow(test)</code></pre>
+<pre><code>## [1] 0.9464865</code></pre>
+</div>
 </div>
 <div id="chlamy-scenedesmus-obliquus-mix" class="section level1">
 <h1><span class="header-section-number">4</span> Chlamy Scenedesmus obliquus mix</h1>
@@ -1747,7 +1793,7 @@ c_13_99_1 &lt;- read.delim(&#39;./bi/c13_mix_99_1.txt&#39;,header = T, skip = 1,
   mutate(volum_c = 99, volum_comp = 1, sp = 13)
 c_13 &lt;- rbind(c_13_1_9, c_13_1_99, c_13_9_1, c_13_99_1)</code></pre>
 <p>model</p>
-<pre class="r"><code>train &lt;- build_train(data_comp = d_13)
+<pre class="r"><code>train &lt;- build_train(data_comp = d_13_test)
 
 rf &lt;- randomForest(
   sp ~ .,
@@ -1761,11 +1807,11 @@ rf</code></pre>
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 14
 ## 
-##         OOB estimate of  error rate: 0.6%
+##         OOB estimate of  error rate: 0.35%
 ## Confusion matrix:
-##         clamy sp_comp class.error
-## clamy    1990      10       0.005
-## sp_comp     5     495       0.010</code></pre>
+##         chlamy sp_comp class.error
+## chlamy    1894       6 0.003157895
+## sp_comp      1     124 0.008000000</code></pre>
 <p>top 10 preditors</p>
 <pre class="r"><code>importance(rf) %&gt;%
   as.data.frame() %&gt;%
@@ -1774,17 +1820,28 @@ rf</code></pre>
   arrange(-MeanDecreaseGini) %&gt;% 
   head(10)</code></pre>
 <pre><code>##                      var MeanDecreaseGini
-## 1  Median.Pixel_M10_Ch10           51.103
-## 2    Mean.Pixel_M10_Ch10           44.011
-## 3  Raw.Max.Pixel_MC_Ch05           39.257
-## 4  Raw.Max.Pixel_MC_Ch04           35.919
-## 5      Max.Pixel_MC_Ch04           35.532
-## 6      Contrast_M12_Ch12           25.561
-## 7      Max.Pixel_MC_Ch11           25.095
-## 8      Max.Pixel_MC_Ch05           24.563
-## 9    Mean.Pixel_M05_Ch05           24.228
-## 10   Mean.Pixel_M06_Ch06           21.875</code></pre>
+## 1  Raw.Max.Pixel_MC_Ch05           11.723
+## 2      Max.Pixel_MC_Ch05           11.715
+## 3      Max.Pixel_MC_Ch04           10.231
+## 4  Median.Pixel_M10_Ch10            8.901
+## 5    Mean.Pixel_M10_Ch10            7.668
+## 6  Raw.Max.Pixel_MC_Ch04            7.032
+## 7              Width_M04            6.138
+## 8      Max.Pixel_MC_Ch11            5.847
+## 9    Mean.Pixel_M06_Ch06            5.503
+## 10     Contrast_M12_Ch12            5.031</code></pre>
 <pre class="r"><code>c_13$pre_sp &lt;- predict(rf, newdata = c_13)</code></pre>
+<div id="use-test-data-from-the-monoculture-2" class="section level2">
+<h2><span class="header-section-number">4.1</span> use test data from the monoculture</h2>
+<pre class="r"><code>test &lt;- d_c_test %&gt;% 
+  mutate(sp = &#39;chlamy&#39;) %&gt;% 
+  bind_rows(d_13_test %&gt;% mutate(sp = &#39;sp_comp&#39;))
+test$sp_pred &lt;- predict(rf, newdata=test)
+print(&#39;accuracy&#39;)</code></pre>
+<pre><code>## [1] &quot;accuracy&quot;</code></pre>
+<pre class="r"><code>sum(test$sp == as.character(test$sp_pred))/nrow(test)</code></pre>
+<pre><code>## [1] 1</code></pre>
+</div>
 </div>
 <div id="density-table" class="section level1">
 <h1><span class="header-section-number">5</span> density table</h1>
@@ -1848,49 +1905,49 @@ d_compare %&gt;% kable(digits = 3)</code></pre>
 <td align="left">Scenedesmus</td>
 <td align="right">0.10</td>
 <td align="right">0.051</td>
-<td align="right">0.056</td>
+<td align="right">0.090</td>
 </tr>
 <tr class="even">
 <td align="left">Scenedesmus</td>
 <td align="right">0.01</td>
 <td align="right">0.005</td>
-<td align="right">0.042</td>
+<td align="right">0.090</td>
 </tr>
 <tr class="odd">
 <td align="left">Scenedesmus</td>
 <td align="right">0.90</td>
 <td align="right">0.812</td>
-<td align="right">0.745</td>
+<td align="right">0.759</td>
 </tr>
 <tr class="even">
 <td align="left">Scenedesmus</td>
 <td align="right">0.99</td>
 <td align="right">0.979</td>
-<td align="right">0.968</td>
+<td align="right">0.969</td>
 </tr>
 <tr class="odd">
 <td align="left">Chlorella</td>
 <td align="right">0.10</td>
 <td align="right">0.018</td>
-<td align="right">0.019</td>
+<td align="right">0.023</td>
 </tr>
 <tr class="even">
 <td align="left">Chlorella</td>
 <td align="right">0.01</td>
 <td align="right">0.002</td>
-<td align="right">0.014</td>
+<td align="right">0.019</td>
 </tr>
 <tr class="odd">
 <td align="left">Chlorella</td>
 <td align="right">0.90</td>
 <td align="right">0.600</td>
-<td align="right">0.500</td>
+<td align="right">0.501</td>
 </tr>
 <tr class="even">
 <td align="left">Chlorella</td>
 <td align="right">0.99</td>
 <td align="right">0.943</td>
-<td align="right">0.905</td>
+<td align="right">0.907</td>
 </tr>
 <tr class="odd">
 <td align="left">Synechococcus</td>

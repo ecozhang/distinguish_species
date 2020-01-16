@@ -1,0 +1,2 @@
+chlamy and chlorella are old. They have been refreshed for 40 days. (refreshed on 2019-11-09)
+13 and 76 are relatively new. Refreshed for 17 days (refreshed on 2019-12-11). 76 should still in exponential phase.
